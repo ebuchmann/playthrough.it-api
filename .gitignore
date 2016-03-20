@@ -1,0 +1,7 @@
+node_modules/
+*.log
+.DS_Store
+dist/
+credentials.js
+dev.sqlite3
+seeds/

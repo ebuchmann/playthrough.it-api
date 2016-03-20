@@ -1,0 +1,48 @@
+{
+  "name": "api",
+  "version": "1.0.0",
+  "description": "",
+  "author": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "gulp --harmony test",
+    "start": "set DEBUG=play* && gulp watch",
+    "dbinit": "knex migrate:rollback && knex migrate:latest && knex seed:run"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "bookshelf": "^0.9.1",
+    "chalk": "^1.1.1",
+    "debug": "^2.2.0",
+    "handlebars": "^4.0.5",
+    "knex": "^0.9.0",
+    "koa": "^1.1.2",
+    "koa-body": "^1.4.0",
+    "koa-passport": "^1.2.0",
+    "koa-render": "^0.2.1",
+    "koa-route": "^2.4.2",
+    "koa-session": "^3.3.1",
+    "koa-static": "^2.0.0",
+    "mongodb": "^2.1.7",
+    "mongorito": "^2.0.0",
+    "passport-twitter": "^1.0.4",
+    "pg": "^4.4.3"
+  },
+  "devDependencies": {
+    "babel": "^6.3.26",
+    "babel-runtime": "^6.3.19",
+    "eslint": "^2.4.0",
+    "eslint-config-airbnb": "^6.1.0",
+    "eslint-plugin-react": "^4.2.3",
+    "faker": "^3.0.1",
+    "gulp": "^3.9.0",
+    "gulp-babel": "^6.1.1",
+    "gulp-env": "^0.4.0",
+    "gulp-mocha-co": "^0.4.1-co.3",
+    "gulp-watch": "^4.3.5",
+    "koa-cors": "0.0.16",
+    "run-sequence": "^1.1.5",
+    "safeharbor": "^0.1.0",
+    "then-request": "^2.1.1"
+  }
+}
