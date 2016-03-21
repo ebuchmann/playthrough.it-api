@@ -6,6 +6,7 @@ module.exports = function(app, db) {
     const Collection = db.Collection;
     const Item = db.Item;
     const Game = db.Game;
+    const User = db.User;
 
     /*
         PUBLIC ROUTES
@@ -16,7 +17,7 @@ module.exports = function(app, db) {
         this.status = 200;
         this.body = {
             type: 'collections',
-            attributes: yield Collection.all(),
+            attributes: yield Collection.populate('user', User).find(),
         };
     }));
 
@@ -26,7 +27,7 @@ module.exports = function(app, db) {
         this.body = {
             type: 'collections',
             _id: id,
-            attributes: yield Collection.findById(String(id)),
+            attributes: yield Collection.populate('user', User).findById(String(id)),
         };
     }));
 
@@ -49,21 +50,9 @@ module.exports = function(app, db) {
         };
     }));
 
-    // Gets a collections game list
-    // TODO: should be moved over to the items file
-    app.use(route.get('/collections/:id/games', function*(id) {
-        this.status = 200;
-        this.body = {
-            type: 'collections',
-            _id: id,
-            attributes: yield Item.populate('game', Game).where('collectionId', new ObjectID(id)).find(),
-        };
-    }));
-
     // Updates a collection
     app.use(route.patch('/collections/:id', function*(id) {
         const data = this.request.body.attributes;
-        debug(data);
         const collection = yield Collection.findById(id);
 
         for (const key in data) {
@@ -80,17 +69,29 @@ module.exports = function(app, db) {
         };
     }));
 
+    // Get collections for a specific user
+    app.use(route.get('/collections/user/:id', function*(id) {
+        this.status = 201;
+        this.body = {
+            type: 'collections',
+            attributes: yield Collection.populate('user', User).where('user', new ObjectID(id)).find(),
+        };
+    }));
+
     /*
-        PRIVATE ROUTES
+        PRIVATE ROUTES, REQUIRES AUTHENTICATION ON ALL ROUTES
     */
 
+    // Create a new, empty, collection for a user
     app.use(route.post('/collections', function*() {
+        if (!this.isAuthenticated()) this.throw('You must be logged in to create a new collection.', 403);
+
         const newCollection = yield new Collection({
+            user: this.passport.user.attributes._id,
             title: this.request.body.attributes.title,
             games: 0,
             completed: 0,
             current: '',
-            owner: 'ebuchmann', // TODO: grab logged in user when you have them
             active: true,
             public: true,
             suggestions: true,
@@ -107,7 +108,7 @@ module.exports = function(app, db) {
 
         this.status = 201;
         this.body = {
-            type: 'collections,',
+            type: 'collections',
             _id: newCollection._id,
             attributes: newCollection,
         };

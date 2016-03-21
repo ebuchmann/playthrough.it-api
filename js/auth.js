@@ -15,39 +15,38 @@ module.exports = function(app, db) {
     app.use(passport.session());
 
     // Twitter
-    passport.serializeUser(function(user, done) {
-        done(null, user.id);
+    passport.serializeUser((user, done) => {
+        done(null, user.attributes._id);
     });
 
-    passport.deserializeUser(function(id, done) {
-        new User({ id: id }).fetch().then(user => {
-            debug(user);
+    passport.deserializeUser((id, done) => {
+        User.findById(id).then(user => {
             done(null, user);
         });
     });
 
 
-    passport.use(new TwitterStrategy(credentials.twitter, function(token, tokenSecret, profile, done) {
+    passport.use(new TwitterStrategy(credentials.twitter, (token, tokenSecret, profile, done) => {
         // retrieve user ...
-        process.nextTick(function() {
-
+        process.nextTick(() => {
             try {
-                new User({ twitter_id: profile.id }).fetch().then(user => {
-                    if(user) {
-                        debug('user found');
-                        debug(token);
-                        return done(null, user);
+                User.where('twitter', profile.id).findOne().then(user => {
+                    if (user) {
+                        debug('found');
+                        done(null, user);
                     } else {
-                        debug('user not found');
-                        new User({ twitter_id: profile.id, username: profile.username })
-                        .save()
-                        .then(user => {
-                            debug(token);
-                            return done(null, user);
+                        debug('not found');
+                        debug(profile);
+                        new User({
+                            twitter: profile.id,
+                            username: profile.displayName,
+                            maxCollections: 5,
+                        }).save().then(u => {
+                            done(null, u);
                         });
                     }
                 });
-            } catch(err) {
+            } catch (err) {
                 debug('error');
                 debug(err);
             }
@@ -58,23 +57,12 @@ module.exports = function(app, db) {
 
     app.use(route.get('/auth/twitter/callback', passport.authenticate('twitter', {
         successRedirect: '/test',
-        failureRedirect: '/',
+        failureRedirect: '/fail',
     })));
-
-    // Fetches currently logged in user
-    app.use(route.get('/users/current', function*() {
-        // this.logout();
-        // debug(this);
-        // this.body = this.request.header;
-        if(this.isAuthenticated()) {
-            this.body = this.passport.user;
-        } else {
-            this.body = 'no';
-        }
-    }));
 
     // logout
     app.use(route.get('/logout', function*() {
+        this.status = 200;
         this.logout();
     }));
 };

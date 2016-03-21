@@ -29,10 +29,22 @@ app.use(views('./public', {
     },
 }));
 
+// Catch all errors
+app.use(function *(next) {
+    try {
+        yield next;
+    } catch (err) {
+        this.status = err.status;
+        this.body = {
+            error: err.message,
+        };
+    }
+});
+
 app.use(route.get('/test', function*() {
     debug('test');
-    // this.body = yield this.render('test');
-    this.body = { true: 'yes' };
+    this.body = yield this.render('test');
+    // this.body = { true: 'yes' };
 }));
 
 app.use(function*(next){
@@ -58,6 +70,7 @@ require(path.join(__dirname, 'models', 'Game.js'))(db);
 require(path.join(__dirname, 'models', 'User.js'))(db);
 require(path.join(__dirname, 'models', 'Collection.js'))(db);
 require(path.join(__dirname, 'models', 'Item.js'))(db);
+require(path.join(__dirname, 'models', 'Suggestion.js'))(db);
 
 // Auth
 require(path.join(__dirname, '.', 'auth.js'))(app, db);
@@ -66,6 +79,8 @@ require(path.join(__dirname, '.', 'auth.js'))(app, db);
 require(path.join(__dirname, 'routes', 'collection.js'))(app, db);
 require(path.join(__dirname, 'routes', 'game.js'))(app, db);
 require(path.join(__dirname, 'routes', 'item.js'))(app, db);
+require(path.join(__dirname, 'routes', 'user.js'))(app, db);
+require(path.join(__dirname, 'routes', 'suggestion.js'))(app, db);
 
 // Start up the API
 if (require.main === module) { // Not a module, starts the API

@@ -11,6 +11,16 @@ module.exports = function(app, db) {
         PUBLIC ROUTES
     */
 
+    // Gets a collections game list
+    // TODO: should be moved over to the items file
+    app.use(route.get('/items/collection/:id', function*(id) {
+        this.status = 200;
+        this.body = {
+            type: 'items',
+            attributes: yield Item.populate('game', Game).where('collectionId', new ObjectID(id)).find(),
+        };
+    }));
+
     // Removes a game from a collection
     app.use(route.delete('/items/:id', function*(id) {
         (yield Item.findById(id)).remove();
