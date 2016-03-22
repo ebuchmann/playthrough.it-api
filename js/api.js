@@ -8,6 +8,15 @@ const route = require('koa-route');
 const port = process.env.PORT || 3033;
 const env = process.env.NODE_ENV || 'development';
 const credentials = require('../credentials')(env);
+// const mailgun = require('mailgun-js')({ apiKey: credentials.mailgun.apiKey, domain: credentials.mailgun.domain });
+// mailgun.messages().send({
+//     from: 'Admin <admin@playthrough.it>',
+//     to: 'me@ebuchmann.com',
+//     subject: 'test',
+//     text: 'body copy',
+// }, (err, body) => {
+//     debug(body);
+// });
 
 // TODO: Get a working ENV set up - 'Dev', 'Staging', 'Prod'
 

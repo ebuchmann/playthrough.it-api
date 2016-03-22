@@ -21,7 +21,7 @@ module.exports = function(app, db) {
         this.status = 201;
         this.body = {
             type: 'suggestions',
-            attributes: yield Suggestion.populate('game', Game).populate('suggestedBy', User).where('collection', new ObjectID(collectionId)).find(),
+            attributes: yield Suggestion.populate('game', Game).populate('suggestedBy', User).where('collection', new ObjectID(collectionId)).where('status', 'New').find(),
         };
     }));
 
@@ -53,17 +53,19 @@ module.exports = function(app, db) {
     }));
 
     // User suggests a game to another user
-    app.use(route.post('/suggestions/:userId/:gameId', function*(userId, gameId) {
+    app.use(route.post('/suggestions/', function*() {
         if (!this.isAuthenticated()) this.throw('You must be logged in to suggest a game.', 403);
 
-        const alreadySuggested = yield Suggestion.where('game', new ObjectID(gameId)).where('suggestedTo', new ObjectID(userId)).findOne();
-        if (alreadySuggested) this.throw('Someone already suggested this game.', 400);
+        const data = this.request.body.attributes;
+
+        if (yield Suggestion.and({ suggestedTo: new ObjectID(data.suggestedTo), game: new ObjectID(data.game) }).count()) this.throw('Someone already suggested this game.', 400);
 
         const newSuggestion = yield new Suggestion({
             suggestedBy: this.passport.user.attributes._id,
-            suggestedTo: new ObjectID(userId),
-            game: new ObjectID(gameId),
-            status: 'new',
+            suggestedTo: new ObjectID(data.suggestedTo),
+            game: new ObjectID(data.game),
+            collection: new ObjectID(data.collection),
+            status: 'New',
         }).save();
 
         this.status = 201;
