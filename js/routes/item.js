@@ -6,6 +6,7 @@ module.exports = function(app, db) {
     const Collection = db.Collection;
     const Item = db.Item;
     const Game = db.Game;
+    const Activity = db.Activity;
 
     /*
         PUBLIC ROUTES
@@ -59,6 +60,13 @@ module.exports = function(app, db) {
         for (const key in data) {
             currentItem.set(key, data[key]);
         }
+
+        yield new Activity({
+            user: this.passport.user.attributes._id,
+            item: currentItem.attributes._id,
+            type: 'items',
+            message: `${this.passport.user.attributes.username} completed ${currentItem.attributes.game.attributes.title} on ${currentItem.attributes.game.attributes.platform}`,
+        }).save();
 
         this.status = 200;
         this.body = {

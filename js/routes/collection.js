@@ -7,6 +7,7 @@ module.exports = function(app, db) {
     const Item = db.Item;
     const Game = db.Game;
     const User = db.User;
+    const Activity = db.Activity;
 
     /*
         PUBLIC ROUTES

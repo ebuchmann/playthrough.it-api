@@ -80,6 +80,7 @@ require(path.join(__dirname, 'models', 'User.js'))(db);
 require(path.join(__dirname, 'models', 'Collection.js'))(db);
 require(path.join(__dirname, 'models', 'Item.js'))(db);
 require(path.join(__dirname, 'models', 'Suggestion.js'))(db);
+require(path.join(__dirname, 'models', 'Activity.js'))(db);
 
 // Auth
 require(path.join(__dirname, '.', 'auth.js'))(app, db);
@@ -90,6 +91,7 @@ require(path.join(__dirname, 'routes', 'game.js'))(app, db);
 require(path.join(__dirname, 'routes', 'item.js'))(app, db);
 require(path.join(__dirname, 'routes', 'user.js'))(app, db);
 require(path.join(__dirname, 'routes', 'suggestion.js'))(app, db);
+require(path.join(__dirname, 'routes', 'activity.js'))(app, db);
 
 // Start up the API
 if (require.main === module) { // Not a module, starts the API

@@ -26,6 +26,8 @@
     "mailgun-js": "^0.7.7",
     "mongodb": "^2.1.7",
     "mongorito": "^2.0.0",
+    "passport-facebook": "^2.1.0",
+    "passport-twitch": "^1.0.2",
     "passport-twitter": "^1.0.4",
     "pg": "^4.4.3"
   },
