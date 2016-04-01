@@ -1,5 +1,3 @@
-'use strict';
-
 const passport = require('koa-passport');
 const env = process.env.NODE_ENV || 'development';
 const credentials = require('../credentials')(env);
@@ -7,8 +5,8 @@ const route = require('koa-route');
 const debug = require('debug')('play:auth');
 
 module.exports = function(app, db) {
+    const { User } = db.models;
 
-    const User = db.User;
     const TwitterStrategy = require('passport-twitter').Strategy;
     const TwitchStrategy = require('passport-twitch').Strategy;
     const FacebookStrategy = require('passport-facebook').Strategy;
@@ -18,7 +16,7 @@ module.exports = function(app, db) {
 
     // Twitter
     passport.serializeUser((user, done) => {
-        done(null, user.attributes._id);
+        done(null, user._id);
     });
 
     passport.deserializeUser((id, done) => {
@@ -80,6 +78,7 @@ module.exports = function(app, db) {
                 User.where('twitter', profile.id).findOne().then(user => {
                     if (user) {
                         debug('found');
+                        debug(user);
                         done(null, user);
                     } else {
                         new User({

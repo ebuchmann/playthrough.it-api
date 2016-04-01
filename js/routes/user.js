@@ -1,9 +1,7 @@
 const route = require('koa-route');
-const debug = require('debug')('play:route:collection');
-const ObjectID = require('mongodb').ObjectID;
+const debug = require('debug')('play:route:user');
 
 module.exports = function(app, db) {
-    const User = db.Collection;
 
     /*
         PUBLIC ROUTES

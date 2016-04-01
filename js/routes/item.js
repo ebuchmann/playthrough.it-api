@@ -1,28 +1,23 @@
 const route = require('koa-route');
 const debug = require('debug')('play:route:item');
-const ObjectID = require('mongodb').ObjectID;
 
 module.exports = function(app, db) {
-    const Collection = db.Collection;
-    const Item = db.Item;
-    const Game = db.Game;
-    const Activity = db.Activity;
-
+    const { Activity, Challenge, Item, Game } = db.models;
     /*
         PUBLIC ROUTES
     */
 
     // Gets a collections game list
-    // TODO: should be moved over to the items file
     app.use(route.get('/items/collection/:id', function*(id) {
         this.status = 200;
         this.body = {
             type: 'items',
-            attributes: yield Item.populate('game', Game).where('collectionId', new ObjectID(id)).find(),
+            attributes: yield Item.find({ challenge: id }).populate('game'),
         };
     }));
 
     // Removes a game from a collection
+    // TODO: Check if logged in user matches Item -> Collection -> User
     app.use(route.delete('/items/:id', function*(id) {
         (yield Item.findById(id)).remove();
         this.status = 204;
@@ -32,26 +27,26 @@ module.exports = function(app, db) {
     app.use(route.patch('/items/:id', function*(id) {
         const data = this.request.body.attributes;
 
-        const currentItem = yield Item.populate('game', Game).findById(id);
-        const collection = yield Collection.findById(currentItem.attributes.collectionId);
+        const currentItem = yield Item.findById(id).populate('game');
+        const collection = yield Challenge.findById(currentItem.challenge);
 
         if (data.status) {
-            if (data.status === 'Finished' && currentItem.attributes.status !== 'Finished') {
-                collection.set('completed', collection.attributes.completed + 1);
+            if (data.status === 'Finished' && currentItem.status !== 'Finished') {
+                collection.set('completed', collection.completed + 1);
             }
-            if (data.status !== 'Finished' && currentItem.attributes.status === 'Finished') {
-                collection.set('completed', collection.attributes.completed - 1);
+            if (data.status !== 'Finished' && currentItem.status === 'Finished') {
+                collection.set('completed', collection.completed - 1);
             }
             if (data.status === 'In Progress') {
-                collection.set('current', currentItem.attributes.game.attributes.title);
+                collection.set('current', currentItem.game.title);
             }
-            if (data.status !== 'In Progress' && currentItem.attributes.status === 'In Progress') {
+            if (data.status !== 'In Progress' && currentItem.status === 'In Progress') {
                 collection.set('current', null);
-                const inProgress = yield Item.populate('game', Game).where({ collectionId: currentItem.attributes.collectionId, status: 'In Progress' }).find();
+                const inProgress = yield Item.populate('game', Game).where({ collectionId: currentItem.collectionId, status: 'In Progress' }).find();
                 if (inProgress) {
-                    const otherProgress = inProgress.find(item => String(item.attributes._id) !== String(currentItem.attributes._id));
+                    const otherProgress = inProgress.find(item => String(item._id) !== String(currentItem._id));
                     if (otherProgress) {
-                        collection.set('current', otherProgress.attributes.game.attributes.title);
+                        collection.set('current', otherProgress.game.title);
                     }
                 }
             }
@@ -61,11 +56,12 @@ module.exports = function(app, db) {
             currentItem.set(key, data[key]);
         }
 
+        // TODO: Actually make middleware to handle all this
         yield new Activity({
-            user: this.passport.user.attributes._id,
-            item: currentItem.attributes._id,
+            user: this.passport.user._id,
+            item: currentItem._id,
             type: 'items',
-            message: `${this.passport.user.attributes.username} completed ${currentItem.attributes.game.attributes.title} on ${currentItem.attributes.game.attributes.platform}`,
+            message: `${this.passport.user.username} completed ${currentItem.game.title} on ${currentItem.game.platform}`,
         }).save();
 
         this.status = 200;

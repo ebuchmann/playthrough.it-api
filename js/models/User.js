@@ -1,7 +1,9 @@
-module.exports = function(db) {
-    const User = db.extend({
-        collection: 'users',
-    });
+const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
 
-    db.User = User;
-};
+const userSchema = new Schema({
+    username: String,
+    twitter: String,
+});
+
+module.exports = mongoose.model('User', userSchema);

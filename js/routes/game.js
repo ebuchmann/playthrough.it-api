@@ -1,25 +1,18 @@
 const route = require('koa-route');
 const debug = require('debug')('play:route:game');
-const Mongorito = require('mongorito');
-const Model = Mongorito.Model;
-Mongorito.connect('localhost');
-
-const Game = Model.extend({
-    collection: 'games',
-});
 
 module.exports = function(app, db) {
-
+    const { Game } = db.models;
     /*
         PUBLIC ROUTES
     */
 
     app.use(route.post('/games/search', function*() {
-        const data = this.request.body.attributes;
+        const { query, filter } = this.request.body.attributes;
 
-        const results = yield data.filter === '*'
-        ? Game.where('title', new RegExp(`^${data.query}`, 'i')).find()
-        : Game.where('title', new RegExp(`^${data.query}`, 'i')).where('platform', data.filter).find();
+        const results = yield filter === '*'
+        ? Game.find({ title: new RegExp(`^${query}`, 'i') })
+        : Game.find({ title: (`^${query}`, 'i'), platform: filter });
 
         this.status = 200;
         this.body = {

@@ -7,7 +7,7 @@ const route = require('koa-route');
 
 const port = process.env.PORT || 3033;
 const env = process.env.NODE_ENV || 'development';
-const credentials = require('../credentials')(env);
+const credentials = require('../credentials')();
 // const mailgun = require('mailgun-js')({ apiKey: credentials.mailgun.apiKey, domain: credentials.mailgun.domain });
 // mailgun.messages().send({
 //     from: 'Admin <admin@playthrough.it>',
@@ -21,16 +21,10 @@ const credentials = require('../credentials')(env);
 // TODO: Get a working ENV set up - 'Dev', 'Staging', 'Prod'
 
 const app = koa();
-const db = require(path.join(__dirname, 'db.js'));
+const db = require(path.join(__dirname, 'db.js'))(credentials);
 
 app.use(require('koa-body')());
 app.use(require('koa-session')(app));
-
-// app.use(require('koa-cors')({
-//     origin : '*',
-//     methods: ['GET', 'PUT', 'POST', 'PATCH', 'DELETE'],
-//     headers: ['Access-Control-Allow-Origin', '*'],
-// }));
 
 app.use(views('./public', {
     map: {
@@ -39,16 +33,16 @@ app.use(views('./public', {
 }));
 
 // Catch all errors
-app.use(function *(next) {
-    try {
-        yield next;
-    } catch (err) {
-        this.status = err.status;
-        this.body = {
-            error: err.message,
-        };
-    }
-});
+// app.use(function *(next) {
+//     try {
+//         yield next;
+//     } catch (err) {
+//         this.status = err.status;
+//         this.body = {
+//             error: err.message,
+//         };
+//     }
+// });
 
 app.use(route.get('/test', function*() {
     debug('test');
@@ -69,29 +63,29 @@ app.use(route.options('*', function*() {
     return;
 }));
 
-app.keys = ['your-session-secret'];
+app.keys = ['woah my key code secretly'];
 
 // TODO: Find a better way to include all Models / Routes, keep it DRY
 
 // Models
-require(path.join(__dirname, 'models', 'Platform.js'))(db);
-require(path.join(__dirname, 'models', 'Game.js'))(db);
-require(path.join(__dirname, 'models', 'User.js'))(db);
-require(path.join(__dirname, 'models', 'Collection.js'))(db);
-require(path.join(__dirname, 'models', 'Item.js'))(db);
-require(path.join(__dirname, 'models', 'Suggestion.js'))(db);
-require(path.join(__dirname, 'models', 'Activity.js'))(db);
+require(path.join(__dirname, 'models', 'Activity.js'));
+require(path.join(__dirname, 'models', 'Challenge.js'));
+require(path.join(__dirname, 'models', 'Game.js'));
+require(path.join(__dirname, 'models', 'Item.js'));
+require(path.join(__dirname, 'models', 'Platform.js'));
+require(path.join(__dirname, 'models', 'Suggestion.js'));
+require(path.join(__dirname, 'models', 'User.js'));
 
 // Auth
 require(path.join(__dirname, '.', 'auth.js'))(app, db);
 
 // Routes
+require(path.join(__dirname, 'routes', 'activity.js'))(app, db);
 require(path.join(__dirname, 'routes', 'collection.js'))(app, db);
 require(path.join(__dirname, 'routes', 'game.js'))(app, db);
 require(path.join(__dirname, 'routes', 'item.js'))(app, db);
-require(path.join(__dirname, 'routes', 'user.js'))(app, db);
 require(path.join(__dirname, 'routes', 'suggestion.js'))(app, db);
-require(path.join(__dirname, 'routes', 'activity.js'))(app, db);
+require(path.join(__dirname, 'routes', 'user.js'))(app, db);
 
 // Start up the API
 if (require.main === module) { // Not a module, starts the API

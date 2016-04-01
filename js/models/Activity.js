@@ -1,7 +1,10 @@
-module.exports = function(db) {
-    const Activity = db.extend({
-        collection: 'activities',
-    });
+const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
 
-    db.Activity = Activity;
-};
+const activitySchema = new Schema({
+    type: String,
+    message: String,
+    user: [{ type: Schema.Types.ObjectId, ref: 'User' }],
+});
+
+module.exports = mongoose.model('Activity', activitySchema);

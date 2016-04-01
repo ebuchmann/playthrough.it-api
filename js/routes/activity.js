@@ -1,22 +1,18 @@
 const route = require('koa-route');
-const debug = require('debug')('play:route:collection');
-const ObjectID = require('mongodb').ObjectID;
+const debug = require('debug')('play:route:activity');
 
 module.exports = function(app, db) {
-    const Item = db.Item;
-    const Game = db.Game;
-    const User = db.User;
-    const Activity = db.Activity;
-
+    const { Activity } = db.models;
     /*
         PUBLIC ROUTES
     */
 
     app.use(route.get('/activities', function*() {
+        debug('route');
         this.status = 201;
         this.body = {
             type: 'activities',
-            attributes: yield Activity.populate('item', Item).populate('user', User).find(),
+            attributes: yield Activity.find().populate('user', 'username'),
         };
     }));
 

@@ -1,7 +1,10 @@
-module.exports = function(db) {
-    const Game = db.extend({
-        collection: 'games',
-    });
+const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
 
-    db.Game = Game;
-};
+const gameSchema = new Schema({
+    platform: String,
+    title: String,
+    genres: Array,
+});
+
+module.exports = mongoose.model('Game', gameSchema);

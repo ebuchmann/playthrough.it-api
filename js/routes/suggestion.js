@@ -1,13 +1,8 @@
 const route = require('koa-route');
 const debug = require('debug')('play:route:suggestion');
-const ObjectID = require('mongodb').ObjectID;
 
 module.exports = function(app, db) {
-    const Suggestion = db.Suggestion;
-    const Game = db.Game;
-    const User = db.User;
-    const Item = db.Item;
-
+    const { Item, Suggestion } = db.models;
     /*
         PUBLIC ROUTES
     */
@@ -21,7 +16,7 @@ module.exports = function(app, db) {
         this.status = 201;
         this.body = {
             type: 'suggestions',
-            attributes: yield Suggestion.populate('game', Game).populate('suggestedBy', User).where('collection', new ObjectID(collectionId)).where('status', 'New').find(),
+            attributes: yield Suggestion.find({ status: 'New', collection: collectionId }).populate('game').populate('suggestedBy'),
         };
     }));
 
@@ -30,8 +25,8 @@ module.exports = function(app, db) {
         const suggestion = yield Suggestion.findById(suggestionId);
 
         const item = yield new Item({
-            collectionId: suggestion.attributes.collection,
-            game: suggestion.attributes.game,
+            collectionId: suggestion.collection,
+            game: suggestion.game,
             status: 'Unfinished',
             time: '',
             completed_on: '',
@@ -43,7 +38,7 @@ module.exports = function(app, db) {
         this.status = 201;
         this.body = {
             type: 'items',
-            attributes: yield Item.populate('game', Game).findById(String(item.attributes._id)),
+            attributes: yield Item.findById(item._id).populate('game'),
         };
     }));
 
@@ -58,13 +53,13 @@ module.exports = function(app, db) {
 
         const data = this.request.body.attributes;
 
-        if (yield Suggestion.and({ suggestedTo: new ObjectID(data.suggestedTo), game: new ObjectID(data.game) }).count()) this.throw('Someone already suggested this game.', 400);
+        if (yield Suggestion.find({ suggestedTo: data.suggestedTo, game: data.game }).count()) this.throw('Someone already suggested this game.', 400);
 
         const newSuggestion = yield new Suggestion({
-            suggestedBy: this.passport.user.attributes._id,
-            suggestedTo: new ObjectID(data.suggestedTo),
-            game: new ObjectID(data.game),
-            collection: new ObjectID(data.collection),
+            suggestedBy: this.passport.user._id,
+            suggestedTo: data.suggestedTo,
+            game: data.game,
+            collection: data.collection,
             status: 'New',
         }).save();
 

@@ -1,14 +1,8 @@
 const route = require('koa-route');
-const debug = require('debug')('play:route:collection');
-const ObjectID = require('mongodb').ObjectID;
+const path = require('path');
 
 module.exports = function(app, db) {
-    const Collection = db.Collection;
-    const Item = db.Item;
-    const Game = db.Game;
-    const User = db.User;
-    const Activity = db.Activity;
-
+    const { Challenge, Item, Game } = db.models;
     /*
         PUBLIC ROUTES
     */
@@ -18,7 +12,7 @@ module.exports = function(app, db) {
         this.status = 200;
         this.body = {
             type: 'collections',
-            attributes: yield Collection.populate('user', User).find(),
+            attributes: yield Challenge.find().populate('user'),
         };
     }));
 
@@ -28,16 +22,16 @@ module.exports = function(app, db) {
         this.body = {
             type: 'collections',
             _id: id,
-            attributes: yield Collection.populate('user', User).findById(String(id)),
+            attributes: yield Challenge.findById(id).populate('user'),
         };
     }));
 
     // Adds a game to a collection
     // TODO: move this over to "items"
-    app.use(route.post('/collections/:collectionId/games/:gameId', function*(collectionId, gameId) {
+    app.use(route.post('/collections/:challengeId/games/:gameId', function*(challengeId, gameId) {
         const item = yield new Item({
-            collectionId: new ObjectID(collectionId),
-            game: new ObjectID(gameId),
+            challenge: challengeId,
+            game: gameId,
             status: 'Unfinished',
             time: '',
             completed_on: '',
@@ -47,14 +41,14 @@ module.exports = function(app, db) {
         this.body = {
             type: 'collections',
             _id: item._id,
-            attributes: yield Item.populate('game', Game).findById(String(item.attributes._id)),
+            attributes: yield Item.findById(item._id).populate('game'),
         };
     }));
 
     // Updates a collection
     app.use(route.patch('/collections/:id', function*(id) {
         const data = this.request.body.attributes;
-        const collection = yield Collection.findById(id);
+        const collection = yield Challenge.findById(id);
 
         for (const key in data) {
             collection.set(key, data[key]);
@@ -75,7 +69,7 @@ module.exports = function(app, db) {
         this.status = 201;
         this.body = {
             type: 'collections',
-            attributes: yield Collection.populate('user', User).where('user', new ObjectID(id)).find(),
+            attributes: yield Challenge.find({ user: id }).populate('user'),
         };
     }));
 
@@ -88,7 +82,7 @@ module.exports = function(app, db) {
         if (!this.isAuthenticated()) this.throw('You must be logged in to create a new collection.', 403);
 
         const newCollection = yield new Collection({
-            user: this.passport.user.attributes._id,
+            user: this.passport.user._id,
             title: this.request.body.attributes.title,
             games: 0,
             completed: 0,

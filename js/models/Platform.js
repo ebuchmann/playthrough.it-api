@@ -1,7 +1,8 @@
-module.exports = function(db) {
-    const Platform = db.extend({
-        collection: 'platforms',
-    });
+const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
 
-    db.Platform = Platform;
-};
+const platformSchema = new Schema({
+    title: String,
+});
+
+module.exports = mongoose.model('Platform', platformSchema);

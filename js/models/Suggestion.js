@@ -1,7 +1,12 @@
-module.exports = function(db) {
-    const Suggestion = db.extend({
-        collection: 'suggestions',
-    });
+const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
 
-    db.Suggestion = Suggestion;
-};
+const suggestionSchema = new Schema({
+    suggestedBy: { type: Schema.Types.ObjectId, ref: 'User' },
+    suggestedTo: { type: Schema.Types.ObjectId, ref: 'User' },
+    game: { type: Schema.Types.ObjectId, ref: 'Game' },
+    challenge: { type: Schema.Types.ObjectId, ref: 'Challenge' },
+    status: String,
+});
+
+module.exports = mongoose.model('Suggestion', suggestionSchema);
