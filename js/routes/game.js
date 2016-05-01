@@ -12,7 +12,7 @@ module.exports = function(app, db) {
 
         const results = yield filter === '*'
         ? Game.find({ title: new RegExp(`^${query}`, 'i') })
-        : Game.find({ title: (`^${query}`, 'i'), platform: filter });
+        : Game.find({ title: new RegExp(`^${query}`, 'i'), platform: filter });
 
         this.status = 200;
         this.body = {

@@ -8,6 +8,8 @@
         "indent": [2, 4],
         "max-len": [2, 300, {"ignoreUrls": true}],
         "no-shadow": [0],
-        "no-param-reassign": [0]
+        "no-param-reassign": [0],
+        "func-names" : [0],
+        "no-unused-vars": [1],
     }
 }

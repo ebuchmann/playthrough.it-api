@@ -42,7 +42,7 @@ module.exports = function(app, db) {
             }
             if (data.status !== 'In Progress' && currentItem.status === 'In Progress') {
                 collection.set('current', null);
-                const inProgress = yield Item.populate('game', Game).where({ collectionId: currentItem.collectionId, status: 'In Progress' }).find();
+                const inProgress = yield Item.find({ collectionId: currentItem.collectionId, status: 'In Progress' }).populate('game');
                 if (inProgress) {
                     const otherProgress = inProgress.find(item => String(item._id) !== String(currentItem._id));
                     if (otherProgress) {
@@ -78,4 +78,24 @@ module.exports = function(app, db) {
     /*
         PRIVATE ROUTES
     */
+
+    // Adds a game to a collection
+    // TODO: move this over to "items"
+    app.use(route.post('/collections/:collectionId/games/:gameId', function*(collectionId, gameId) {
+        if (!this.isAuthenticated()) this.throw('You must be logged in to add games to a collection.', 403);
+
+        if (!(yield Challenge.find({ _id: collectionId, user: this.passport.user._id }).count())) this.throw('You can only edit collections you own.', 403);
+
+        const item = yield new Item({
+            challenge: collectionId,
+            game: gameId,
+        }).save();
+
+        this.status = 201;
+        this.body = {
+            type: 'collections',
+            _id: item._id,
+            attributes: yield Item.findById(item._id).populate('game'),
+        };
+    }));
 };

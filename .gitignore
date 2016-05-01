@@ -5,3 +5,4 @@ dist/
 credentials.js
 dev.sqlite3
 seeds/
+public/profile
